@@ -1,0 +1,52 @@
+---
+title: "5999 Ver1"
+author: "Yanran Wei"
+date: "3/9/2021"
+output: html_document
+---
+# data cleaning
+```{r}
+# Load data, summary, boxplot
+soildata <- read.csv("soil.csv")
+summary(soildata)
+boxplot(as.numeric(soildata$Value),soildata$Start.Date)
+```
+
+```{r}
+# Redefine the dataframe
+soil <- soildata
+soil = data.frame(soil$Region,soil$End.Date,soil$Value)
+soil <- na.omit(soil)
+soil
+```
+
+```{r}
+# Split the data
+soil_s <- split(soil, soil$soil.Region)
+soil_s
+soil_Al <- soil_s$Alberta
+soil_Al
+```
+
+```{r}
+soil$soil.End.Date <- as.Date(soil$soil.End.Date)
+soil$soil.Region <- as.character(soil$soil.Region)
+soil$soil.Value <- as.numeric(as.character(soil$soil.Value))
+soil <- na.omit(soil)
+soil
+```
+
+```{r}
+library(xts)
+library(dplyr)
+library(lubridate)
+soil_Al %>%
+  mutate(year = year(soil.End.Date), 
+         monthnum = month(soil.End.Date),
+         month = month(soil.End.Date, label=T)) %>%
+  group_by(year, month) %>%
+  arrange(year, monthnum) %>%
+  select(-monthnum) %>%
+  summarise(soil.Value = mean(soil.Value))
+```
+

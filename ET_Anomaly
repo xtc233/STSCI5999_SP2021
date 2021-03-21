@@ -1,0 +1,20 @@
+ET_Anomaly_O= read.csv('ET Anomaly.csv')
+
+# to get a new data frame that contains only Region, Date and Value
+ET_Anomaly = data.frame(Region = ET_Anomaly_O$Region,
+                  Date = as.Date(ET_Anomaly_O$End.Date,tryFormats = c('%m/%d/%Y')),
+                  Value = as.numeric(ET_Anomaly_O$Value))
+
+ET_Anomaly
+
+# split the data frame by Regions
+ET_Anomaly_Region = split(ET_Anomaly,ET_Anomaly$Region)
+
+plot(as.factor(ET_Anomaly_Region$Alberta$Date),ET_Anomaly_Region$Alberta$Value)
+
+library(ggplot2)
+ggplot(data = ET_Anomaly_Region$Alberta, aes(x = Date, y = Value)) +
+    geom_bar(stat = 'identity', fill = 'purple') +
+    labs(x = 'Date',
+         y = 'ET Anomaly',
+         title = 'ET Anomaly Data for Alberta')

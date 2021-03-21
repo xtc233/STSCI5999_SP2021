@@ -1,0 +1,124 @@
+---
+title: "MPS Project"
+author: "Sandra Lapinska"
+date: "3/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(tidyverse)
+```
+
+
+```{r}
+soilMois<-read.csv('~/Documents/MPS_excel_files/Gro_2021-03-09_Display_10(SoilMoisture).csv',sep=",")
+summary(soilMois)
+#boxplot(soilMois$value, soilMois$Start.Date)
+soil <- soilMois
+#region, value, start data, end date
+```
+
+```{r}
+soil <- subset(soil, select=c(Region, End.Date, Value))
+summary(soil)
+```
+
+```{r}
+#soil <- soil[!soil$Value == "null", ] 
+soil <- na.omit(soil)
+summary(soil)
+```
+
+```{r}
+#soilMois_new$Start.Date <- as.factor(soilMois_new$Start.Date)
+#soilMois_new$End.Date <- as.factor(soilMois_new$End.Date)
+```
+
+```{r}
+library(ggplot2)
+head(soil)
+```
+
+
+
+```{r}
+soilMois_byregion <- split(soil, soil$Region)
+soilMois_byregion
+```
+
+```{r}
+soilMois_byregion$Alberta
+```
+
+```{r}
+soil$End.Date <- as.Date(soil$End.Date)
+soil$Region <- as.character(soil$Region)
+soil$Value <- as.numeric(as.character(soil$Value))
+soil <- na.omit(soil)
+summary(soil)
+```
+
+```{r}
+soil_al <- soilMois_byregion$Alberta
+soil_al$End.Date <- as.Date(soil_al$End.Date)
+soil_al$Region <- as.character(soil_al$Region)
+soil_al$Value <- as.numeric(as.character(soil_al$Value))
+soil_al <- na.omit(soil_al)
+summary(soil_al)
+```
+
+```{r}
+soil_mo1 <- subset(soil_al, select=c(Region, End.Date, Value))
+soil_mo1 <- soil_mo1 %>%
+  mutate(year = year(End.Date), 
+         monthnum = month(End.Date),
+         month = month(End.Date, label=T)) %>%
+  group_by(year, month) %>%
+  arrange(year, monthnum) %>%
+  select(-monthnum) %>%
+  summarise(Value = mean(Value))
+soil_mo1
+```
+
+```{r}
+soil_mo <- subset(soil, select=c(Region, End.Date, Value))
+soil_mo <- soil_mo %>%
+  mutate(year = year(End.Date), 
+         monthnum = month(End.Date),
+         month = month(End.Date, label=T)) %>%
+  group_by(Region, year, month) %>%
+  arrange(year, monthnum) %>%
+  select(-monthnum) %>%
+  summarise(Value = mean(Value))
+soil_mo
+```
+
+```{r}
+soil_mo$Date <- with(soil_mo, sprintf("%d-%02d", year, month))
+soil_mo <- subset(soil_mo, select = -c(year,month) )
+soil_mo
+```
+
+```{r}
+soilbyregion <- split(soil_mo, soil_mo$Region)
+soilbyregion
+```
+
+
+```{r}
+ggplot(data = soilbyregion$Alberta, aes(x = Date, y = Value)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(x = "Date",
+    y = "Soil Moisture",
+    title = "Soil Moisture Data for Alberta")
+```
